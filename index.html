@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BAN2401 試驗前評估 (PSA) 綜合數據平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: #1e2d45;
+      --accent: #00c2ff;
+      --accent2: #7c3aed;
+      --accent3: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'DM Sans', 'Noto Sans TC', sans-serif;
+      --zh: 'Noto Sans TC', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Background grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,194,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,194,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,194,255,0.08);
+      border: 1px solid rgba(0,194,255,0.2);
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .header-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    h1 {
+      font-family: var(--zh);
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .header-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    /* ── Section shell ── */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0.6;
+    }
+
+    .section-title {
+      font-family: var(--zh);
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title .icon {
+      font-size: 18px;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-family: var(--zh);
+    }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 10px 16px;
+      font-family: var(--zh);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--surface2);
+      color: var(--accent);
+      box-shadow: 0 0 0 1px var(--border);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Summary cards (top KPIs) ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      transition: border-color 0.2s;
+    }
+
+    .kpi-card:hover { border-color: rgba(0,194,255,0.3); }
+
+    .kpi-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .kpi-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    /* ── Compare section ── */
+    .select-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) { .select-row { grid-template-columns: 1fr; } }
+
+    label.field-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--zh);
+      font-size: 14px;
+      padding: 10px 14px;
+      appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      transition: border-color 0.2s;
+    }
+
+    select:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Compare table ── */
+    .compare-table-wrap { overflow-x: auto; }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+      font-family: var(--zh);
+    }
+
+    .compare-table thead th {
+      background: var(--bg);
+      padding: 12px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+    }
+
+    .compare-table thead th:first-child { color: var(--text-dim); }
+    .compare-table thead th:nth-child(2) { color: var(--accent); }
+    .compare-table thead th:nth-child(3) { color: var(--accent2); }
+
+    .compare-table tbody tr { transition: background 0.15s; }
+    .compare-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    .compare-table tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(30,45,69,0.5);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .compare-table tbody td:first-child {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      width: 180px;
+      white-space: nowrap;
+    }
+
+    .compare-table tbody td:nth-child(2) {
+      border-left: 2px solid rgba(0,194,255,0.2);
+    }
+
+    .compare-table tbody td:nth-child(3) {
+      border-left: 2px solid rgba(124,58,237,0.2);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .tag-green { background: rgba(16,185,129,0.15); color: var(--accent3); }
+    .tag-blue { background: rgba(0,194,255,0.1); color: var(--accent); }
+    .tag-yellow { background: rgba(245,158,11,0.15); color: var(--warn); }
+    .tag-red { background: rgba(239,68,68,0.12); color: var(--danger); }
+
+    .cite-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    /* ── Calculator ── */
+    .calc-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) { .calc-controls { grid-template-columns: 1fr; } }
+
+    input[type="number"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 15px;
+      padding: 10px 14px;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus { outline: none; border-color: var(--accent); }
+
+    .btn-calc {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--zh);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 11px 28px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-calc:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-calc:active { transform: translateY(0); }
+
+    .calc-result {
+      display: none;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent3);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: var(--zh);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .calc-result.show { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .calc-breakdown {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .calc-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+    }
+
+    .calc-item-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .calc-item-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent3);
+      font-family: var(--mono);
+    }
+
+    /* ── Full Disclosure grid ── */
+    .disclosure-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .site-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+
+    .site-card:hover {
+      border-color: rgba(0,194,255,0.25);
+      transform: translateY(-2px);
+    }
+
+    .site-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+
+    .site-card-name {
+      font-family: var(--zh);
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .site-card-id {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      background: rgba(0,194,255,0.08);
+      border: 1px solid rgba(0,194,255,0.15);
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .site-card-rows { border-top: 1px solid var(--border); padding-top: 12px; }
+
+    .site-row {
+      display: flex;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(30,45,69,0.4);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .site-row:last-child { border-bottom: none; }
+
+    .site-row-key {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 90px;
+      padding-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .site-row-val {
+      color: var(--text-dim);
+      font-family: var(--zh);
+    }
+
+    .note-text {
+      background: rgba(245,158,11,0.07);
+      border-left: 2px solid var(--warn);
+      border-radius: 0 4px 4px 0;
+      padding: 8px 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #c0a040;
+      font-family: var(--zh);
+      line-height: 1.6;
+    }
+
+    /* ── Enrollment ranking ── */
+    .rank-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .rank-num {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      width: 24px;
+      text-align: center;
+    }
+
+    .rank-name {
+      font-family: var(--zh);
+      font-size: 14px;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .rank-bar-wrap {
+      flex: 2;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .rank-bar {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.6s ease;
+    }
+
+    .rank-val {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      width: 80px;
+      text-align: right;
+    }
+
+    /* ── Footnote / cite ── */
+    .foot {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    /* ── Risk flags ── */
+    .risk-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .risk-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: var(--zh);
+      font-size: 12px;
+      color: #fca5a5;
+    }
+
+    .risk-pill::before {
+      content: '⚠';
+      font-size: 12px;
+      color: var(--danger);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="header-badge">PSA PLATFORM · CONFIDENTIAL</div>
+    <h1>BAN2401 臨床試驗前評估 <span>(PSA)</span> 綜合數據平台</h1>
+    <p class="header-sub">11 研究機構 · 完全揭露 · 互動比較 · 費用試算 &nbsp;|&nbsp; lecanemab Phase III Taiwan</p>
+  </header>
+
+  <!-- KPI strip -->
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('compare', this)">📊 機構比較</button>
+    <button class="tab-btn" onclick="switchTab('calc', this)">💰 費用試算</button>
+    <button class="tab-btn" onclick="switchTab('ranking', this)">🏆 收案排名</button>
+    <button class="tab-btn" onclick="switchTab('disclosure', this)">📂 完整揭露</button>
+    <button class="tab-btn" onclick="switchTab('risks', this)">⚠️ 風險摘要</button>
+  </div>
+
+  <!-- Tab: Compare -->
+  <div class="section tab-panel active" id="tab-compare">
+    <div class="section-title"><span class="icon">📊</span>機構橫向比較</div>
+    <p class="section-desc">選擇任意兩家機構，逐項對比 IRB、合約、Overhead 等關鍵評估指標</p>
+    <div class="select-row">
+      <div>
+        <label class="field-label">機構 A</label>
+        <select id="siteA" onchange="updateCompare()"></select>
+      </div>
+      <div>
+        <label class="field-label">機構 B</label>
+        <select id="siteB" onchange="updateCompare()"></select>
+      </div>
+    </div>
+    <div class="compare-table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>評估項目</th>
+            <th id="thA">機構 A</th>
+            <th id="thB">機構 B</th>
+          </tr>
+        </thead>
+        <tbody id="compareBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Calculator -->
+  <div class="section tab-panel" id="tab-calc">
+    <div class="section-title"><span class="icon">💰</span>管理費與啟動費用試算</div>
+    <p class="section-desc">輸入單一年度預估總經費（NTD），自動套用各醫院 Overhead 規則試算費用明細</p>
+    <div class="calc-controls">
+      <div>
+        <label class="field-label">選擇機構</label>
+        <select id="calcSite"></select>
+      </div>
+      <div>
+        <label class="field-label">預估總經費 (NTD)</label>
+        <input type="number" id="budget" value="1000000" step="50000" min="0" />
+      </div>
+      <div>
+        <button class="btn-calc" onclick="calculateCost()">開始試算 →</button>
+      </div>
+    </div>
+    <div class="calc-result" id="calcResult"></div>
+  </div>
+
+  <!-- Tab: Ranking -->
+  <div class="section tab-panel" id="tab-ranking">
+    <div class="section-title"><span class="icon">🏆</span>預估收案量排名</div>
+    <p class="section-desc">各機構 2 年期最大預估收案數 (目標受試者數) 比較</p>
+    <div class="rank-list" id="rankList"></div>
+  </div>
+
+  <!-- Tab: Disclosure -->
+  <div class="section tab-panel" id="tab-disclosure">
+    <div class="section-title"><span class="icon">📂</span>完全揭露資料庫</div>
+    <p class="section-desc">所有 11 家機構 PSA 評估細節完整紀錄，包含 PI / SC、收案、IRB、CTA、Overhead 及備註</p>
+    <div class="disclosure-grid" id="fullDisclosure"></div>
+  </div>
+
+  <!-- Tab: Risks -->
+  <div class="section tab-panel" id="tab-risks">
+    <div class="section-title"><span class="icon">⚠️</span>跨機構風險摘要</div>
+    <p class="section-desc">整合所有機構的特殊風險項目與注意事項，供試驗啟動規劃參考</p>
+    <div id="riskList"></div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+const siteData = [
+  {
+    id:"CGMFLK", shortName:"林口長庚",
+    name:"林口長庚 (CGMF-LK)",
+    pi:"Dr. Yi-Chun Chen", piCite:"[cite:1]",
+    sc:"Yu-Lynn Tung", scCite:"[cite:7]",
+    enrollMax:8, enrollNote:"8 subjects / 2 years", enrollCite:"[cite:19]",
+    retroPatients:"1-2", retroCite:"[cite:21]",
+    proPatients:"<1/month", proCite:"[cite:22]",
+    irbTime:"6–8 週", irbCite:"[cite:45]",
+    irbFee:"NTD 60,000", irbFeeCite:"[cite:49]",
+    ctaTime:"16–20 週", ctaCite:"[cite:52]",
+    ctaFee:"Sponsor 版本 NTD 20,000 / 多中心 NTD 25,000 / 院版 NTD 5,000", ctaFeeCite:"[cite:61]",
+    overhead:"15% (<100萬) / 20% (>100萬)，下限 NTD 10,000", ohCite:"[cite:63]",
+    overheadFn: b => b < 1000000 ? Math.max(b*0.15,10000) : b*0.20,
+    overheadNote:"長庚體系分級制",
+    startupFee: 0,
+    risks:[
+      "PI 擬邀兩位 Sub-I 加入 [cite:4]",
+      "SMO 協議必要但廠商尚未選定 [cite:61]",
+      "首期付款需在 SIV 前，財務風險需注意 [cite:60]"
+    ]
+  },
+  {
+    id:"CTH", shortName:"耕莘醫院",
+    name:"耕莘醫院 (CTH)",
+    pi:"Dr. Yi-Chien Liu", piCite:"[cite:68]",
+    sc:"Min-Chin Wu", scCite:"[cite:74]",
+    enrollMax:10, enrollNote:"10 subjects / 2 years", enrollCite:"[cite:86]",
+    retroPatients:"13", retroCite:"[cite:88]",
+    proPatients:"0–2/month", proCite:"[cite:89]",
+    irbTime:"6–8 週", irbCite:"[cite:110]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 50,000", irbFeeCite:"[cite:114,115]",
+    ctaTime:"12 週", ctaCite:"[cite:117]",
+    ctaFee:"無 CTA 審查費", ctaFeeCite:"[cite:124]",
+    overhead:"固定 NTD 30,000（首期支付）", ohCite:"[cite:126]",
+    overheadFn: _b => 30000,
+    overheadNote:"固定金額制",
+    startupFee: 0,
+    risks:[
+      "Sub-I Dr. Li-Hua Lee 提案中 [cite:71,72]",
+      "SMO 協議必要 [cite:124]"
+    ]
+  },
+  {
+    id:"NCKUH", shortName:"成大醫院",
+    name:"成大醫院 (NCKUH)",
+    pi:"Dr. Ming-Chyi Pai", piCite:"[cite:132]",
+    sc:"Joyce Jhou", scCite:"[cite:137]",
+    enrollMax:12, enrollNote:"12 subjects / 2 years", enrollCite:"[cite:151]",
+    retroPatients:"35", retroCite:"[cite:154]",
+    proPatients:"<2/month", proCite:"[cite:155]",
+    irbTime:"4–6 週", irbCite:"[cite:177]",
+    irbFee:"NTD 75,000", irbFeeCite:"[cite:181]",
+    ctaTime:"16–24 週", ctaCite:"[cite:184]",
+    ctaFee:"雙語版 NTD 31,000 / 中文版 NTD 24,500", ctaFeeCite:"[cite:193]",
+    overhead:"16% 總金額", ohCite:"[cite:195]",
+    overheadFn: b => b*0.16,
+    overheadNote:"固定比例制",
+    startupFee: 0,
+    risks:["SC 確認中 SMO 是否參與 [cite:196]"]
+  },
+  {
+    id:"CGMFKS", shortName:"高雄長庚",
+    name:"高雄長庚 (CGMF-KS)",
+    pi:"Dr. Chiung-Chih Chang", piCite:"[cite:204]",
+    sc:"Shih-Wen Chen", scCite:"[cite:208]",
+    enrollMax:10, enrollNote:"8–10 subjects / 2 years", enrollCite:"[cite:225]",
+    retroPatients:"30", retroCite:"[cite:227]",
+    proPatients:"<2/month", proCite:"[cite:228]",
+    irbTime:"6–8 週", irbCite:"[cite:252]",
+    irbFee:"NTD 60,000", irbFeeCite:"[cite:255]",
+    ctaTime:"16–20 週", ctaCite:"[cite:257]",
+    ctaFee:"Sponsor 版本 NTD 20,000 / 多中心 NTD 25,000 / 院版 NTD 5,000", ctaFeeCite:"[cite:265]",
+    overhead:"15% (<100萬) / 20% (>100萬)，下限 NTD 10,000", ohCite:"[cite:268]",
+    overheadFn: b => b < 1000000 ? Math.max(b*0.15,10000) : b*0.20,
+    overheadNote:"長庚體系分級制",
+    startupFee: 0,
+    risks:[
+      "SMO 廠商為 Sitepartner Corporation [cite:266]",
+      "Lecanemab 自費，PI 對收案影響表達疑慮 [cite:222,232]"
+    ]
+  },
+  {
+    id:"FEMH", shortName:"亞東醫院",
+    name:"亞東醫院 (FEMH)",
+    pi:"Dr. Sui-Hing Yan", piCite:"[cite:272]",
+    sc:"Ruo-Wei Hong", scCite:"[cite:278]",
+    enrollMax:20, enrollNote:"10–20 subjects / 2 years", enrollCite:"[cite:291]",
+    retroPatients:"17", retroCite:"[cite:293]",
+    proPatients:"0–3/month", proCite:"[cite:294]",
+    irbTime:"4–6 週", irbCite:"[cite:317]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 50,000", irbFeeCite:"[cite:321,322]",
+    ctaTime:"16–20 週", ctaCite:"[cite:324]",
+    ctaFee:"新合約 NTD 30,000 / 沿用 NTD 10,000 / 院版 NTD 5,000", ctaFeeCite:"[cite:332]",
+    overhead:"醫院 12% + SMO 12% = 合計 24%", ohCite:"[cite:334,335]",
+    overheadFn: b => b*0.12 + b*0.12,
+    overheadNote:"雙層 Overhead（醫院＋SMO）",
+    startupFee: 30000,
+    risks:[
+      "SMO 廠商為 BioLi Consultancy Ltd [cite:333]",
+      "SMO 啟動費 NTD 30,000 [cite:335]",
+      "已有助理護士支援，建議合理 SC 費率 [cite:336]"
+    ]
+  },
+  {
+    id:"VGHTP", shortName:"台北榮總",
+    name:"台北榮總 (VGHTP)",
+    pi:"Dr. Jong-Ling Fuh", piCite:"[cite:343]",
+    sc:"Julie Chou", scCite:"[cite:349]",
+    enrollMax:10, enrollNote:"10 subjects / 2 years", enrollCite:"[cite:361]",
+    retroPatients:"10", retroCite:"[cite:363]",
+    proPatients:"<1/month", proCite:"[cite:364]",
+    irbTime:"6–8 週", irbCite:"[cite:388]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 50,000", irbFeeCite:"[cite:393,394]",
+    ctaTime:"16–20 週", ctaCite:"[cite:398]",
+    ctaFee:"Sponsor 版本 NTD 70,000", ctaFeeCite:"[cite:405]",
+    overhead:"15%，下限 NTD 40,000", ohCite:"[cite:406,407]",
+    overheadFn: b => Math.max(b*0.15, 40000),
+    overheadNote:"最低 NTD 40,000",
+    startupFee: 40000,
+    risks:[
+      "啟動費最低 NTD 40,000 [cite:407]",
+      "自費用藥效益有限，恐影響收案意願 [cite:366]"
+    ]
+  },
+  {
+    id:"ECKH", shortName:"恩主公醫院",
+    name:"恩主公醫院 (ECKH)",
+    pi:"Dr. Yu Sun", piCite:"[cite:412]",
+    sc:"Pei-Wen Huang (及另 2 位)", scCite:"[cite:416,417]",
+    enrollMax:30, enrollNote:"20–30 subjects / 2 years", enrollCite:"[cite:437]",
+    retroPatients:"11", retroCite:"[cite:439]",
+    proPatients:"0–2/month", proCite:"[cite:440]",
+    irbTime:"4–6 週", irbCite:"[cite:460]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 60,000", irbFeeCite:"[cite:464,465]",
+    ctaTime:"8–12 週", ctaCite:"[cite:472]",
+    ctaFee:"無 CTA 審查費", ctaFeeCite:"[cite:478]",
+    overhead:"未明確定義，PI 費率影響意願", ohCite:"[cite:480]",
+    overheadFn: _b => null,
+    overheadNote:"未定義，需與 PI 確認",
+    startupFee: 0,
+    risks:[
+      "PI 的 IRB 權限暫停至 2026/10/16 [cite:467,470]",
+      "將優先送 cIRB",
+      "PI 希望使用既有資料庫，因 GCP 合規由 Sponsor 拒絕 [cite:428,431]"
+    ]
+  },
+  {
+    id:"MMHTP", shortName:"馬偕台北",
+    name:"馬偕醫院台北 (MMH-TP)",
+    pi:"Dr. Pei-Hao Chen", piCite:"[cite:489]",
+    sc:"Wen-Chun Wu", scCite:"[cite:494]",
+    enrollMax:8, enrollNote:"8 subjects / 2 years", enrollCite:"[cite:510]",
+    retroPatients:"5-6", retroCite:"[cite:512]",
+    proPatients:"<1/month", proCite:"[cite:513]",
+    irbTime:"6–8 週", irbCite:"[cite:537]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 50,000", irbFeeCite:"[cite:541,542]",
+    ctaTime:"16–20 週", ctaCite:"[cite:547]",
+    ctaFee:"院版 NTD 5,000 / 中文版 NTD 20,000 / 雙語版 NTD 40,000", ctaFeeCite:"[cite:553,554]",
+    overhead:"10%，下限 NTD 50,000", ohCite:"[cite:555]",
+    overheadFn: b => Math.max(b*0.10, 50000),
+    overheadNote:"最低 NTD 50,000",
+    startupFee: 50000,
+    risks:[
+      "啟動費 NTD 50,000 或 NTD 70,000 [cite:556]",
+      "無需 SMO",
+      "自費用藥挑戰已被記錄 [cite:515,557]"
+    ]
+  },
+  {
+    id:"CGMFTC", shortName:"土城長庚",
+    name:"土城長庚 (CGMF-TC)",
+    pi:"Dr. Jung-Lung Hsu", piCite:"[cite:563]",
+    sc:"Ming-Shan Tsai", scCite:"[cite:568]",
+    enrollMax:12, enrollNote:"12 subjects / 2 years", enrollCite:"[cite:581]",
+    retroPatients:"14-15", retroCite:"[cite:583]",
+    proPatients:"0–2/month", proCite:"[cite:584]",
+    irbTime:"6–8 週", irbCite:"[cite:608]",
+    irbFee:"NTD 60,000", irbFeeCite:"[cite:615]",
+    ctaTime:"16–20 週", ctaCite:"[cite:617]",
+    ctaFee:"Sponsor 版本 NTD 20,000 / 多中心 NTD 25,000 / 院版 NTD 5,000", ctaFeeCite:"[cite:624]",
+    overhead:"15% (<100萬) / 20% (>100萬)，下限 NTD 10,000", ohCite:"[cite:626]",
+    overheadFn: b => b < 1000000 ? Math.max(b*0.15,10000) : b*0.20,
+    overheadNote:"長庚體系分級制",
+    startupFee: 0,
+    risks:[
+      "不需 Sub-I [cite:566]",
+      "依賴長庚集中 IRB [cite:610]",
+      "自費用藥挑戰已被記錄 [cite:588]"
+    ]
+  },
+  {
+    id:"CSMUH", shortName:"中山附醫",
+    name:"中山醫大附醫 (CSMUH)",
+    pi:"Dr. Yue-Loong Hsin", piCite:"[cite:632]",
+    sc:"Chien-Min Lin", scCite:"[cite:637]",
+    enrollMax:12, enrollNote:"12 subjects / 2 years", enrollCite:"[cite:649]",
+    retroPatients:"9", retroCite:"[cite:651]",
+    proPatients:"0–1/month", proCite:"[cite:652]",
+    irbTime:"6–8 週", irbCite:"[cite:673]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 50,000", irbFeeCite:"[cite:677,678]",
+    ctaTime:"16–20 週", ctaCite:"[cite:681]",
+    ctaFee:"Sponsor 版本 NTD 30,000 / 院版 NTD 5,000", ctaFeeCite:"[cite:686]",
+    overhead:"12% 總金額", ohCite:"[cite:687]",
+    overheadFn: b => b*0.12,
+    overheadNote:"固定比例制",
+    startupFee: 0,
+    risks:["PI 尚未指定 Key Sub-I [cite:635]"]
+  },
+  {
+    id:"SHH", shortName:"雙和醫院",
+    name:"雙和醫院 (SHH)",
+    pi:"Dr. Chaur-Jong Hu", piCite:"[cite:693]",
+    sc:"Hsin-Ying Chung", scCite:"[cite:699]",
+    enrollMax:8, enrollNote:"6–8 subjects / 2 years", enrollCite:"[cite:713]",
+    retroPatients:"6", retroCite:"[cite:715]",
+    proPatients:"<1/month", proCite:"[cite:716]",
+    irbTime:"4–6 週", irbCite:"[cite:738]",
+    irbFee:"c-IRB NTD 60,000 / 院內 NTD 50,000", irbFeeCite:"[cite:741,742]",
+    ctaTime:"16–20 週", ctaCite:"[cite:745]",
+    ctaFee:"首次 NTD 20,000 / 沿用範本 NTD 2,000", ctaFeeCite:"[cite:753]",
+    overhead:"15% 總金額", ohCite:"[cite:756]",
+    overheadFn: b => b*0.15,
+    overheadNote:"固定比例制，啟動費 NTD 30,000 額外",
+    startupFee: 30000,
+    risks:[
+      "啟動費 NTD 30,000（FE CTA 前支付，無法納入合約）[cite:754,757]",
+      "SC 確認中 SMO 是否參與 [cite:758]"
+    ]
+  }
+];
+
+const compareFields = [
+  { key:'pi',            label:'主要 PI',           fn: s => `${s.pi} <span class="foot">${s.piCite}</span>` },
+  { key:'sc',            label:'研究護理師 SC',     fn: s => `${s.sc} <span class="foot">${s.scCite}</span>` },
+  { key:'enrollNote',    label:'預估收案量',         fn: s => `<span class="tag tag-blue">${s.enrollNote}</span> <span class="foot">${s.enrollCite}</span>` },
+  { key:'retro',         label:'回溯潛在受試者',     fn: s => `${s.retroPatients} 人 <span class="foot">${s.retroCite}</span>` },
+  { key:'pro',           label:'前瞻預估速率',       fn: s => `${s.proPatients} <span class="foot">${s.proCite}</span>` },
+  { key:'irbTime',       label:'IRB 預估時程',       fn: s => `${s.irbTime} <span class="foot">${s.irbCite}</span>` },
+  { key:'irbFee',        label:'IRB 規費',           fn: s => `${s.irbFee} <span class="foot">${s.irbFeeCite}</span>` },
+  { key:'ctaTime',       label:'CTA 合約時程',       fn: s => `${s.ctaTime} <span class="foot">${s.ctaCite}</span>` },
+  { key:'ctaFee',        label:'CTA 審查費',         fn: s => `${s.ctaFee} <span class="foot">${s.ctaFeeCite}</span>` },
+  { key:'overhead',      label:'管理費 Overhead',    fn: s => `${s.overhead} <span class="foot">${s.ohCite}</span>` },
+  { key:'startupFee',    label:'啟動費 Startup',     fn: s => s.startupFee > 0 ? `<span class="tag tag-yellow">NTD ${s.startupFee.toLocaleString()}</span>` : `<span class="tag tag-green">無</span>` },
+  { key:'risks',         label:'特殊注意事項',       fn: s => s.risks.map(r=>`<div style="margin-bottom:4px">• ${r}</div>`).join('') }
+];
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function populateSelects() {
+  ['siteA','siteB','calcSite'].forEach(id => {
+    const el = document.getElementById(id);
+    siteData.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.text = s.name;
+      el.appendChild(opt);
+    });
+  });
+  document.getElementById('siteB').selectedIndex = 1;
+}
+
+function updateCompare() {
+  const a = siteData.find(s => s.id === document.getElementById('siteA').value);
+  const b = siteData.find(s => s.id === document.getElementById('siteB').value);
+  document.getElementById('thA').innerHTML = `<span style="color:var(--accent)">${a.name}</span>`;
+  document.getElementById('thB').innerHTML = `<span style="color:#a78bfa">${b.name}</span>`;
+  const tbody = document.getElementById('compareBody');
+  tbody.innerHTML = '';
+  compareFields.forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${f.label}</td><td>${f.fn(a)}</td><td>${f.fn(b)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function calculateCost() {
+  const site = siteData.find(s => s.id === document.getElementById('calcSite').value);
+  const budget = parseFloat(document.getElementById('budget').value);
+  const resultDiv = document.getElementById('calcResult');
+
+  if (isNaN(budget) || budget <= 0) {
+    resultDiv.className = 'calc-result show';
+    resultDiv.innerHTML = '<span style="color:var(--danger)">請輸入有效的試驗總經費（大於 0）</span>';
+    return;
+  }
+
+  const oh = site.overheadFn(budget);
+  const total = oh !== null ? budget + (site.startupFee || 0) + oh : null;
+
+  let html = `<div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;">
+    ${site.name} &nbsp;·&nbsp; 試算基礎 NTD ${budget.toLocaleString()}</div>`;
+
+  html += `<div class="calc-breakdown">`;
+  html += `<div class="calc-item"><div class="calc-item-label">預估總經費</div><div class="calc-item-value">NT$ ${budget.toLocaleString()}</div></div>`;
+
+  if (oh !== null) {
+    html += `<div class="calc-item"><div class="calc-item-label">Overhead (${site.overheadNote})</div><div class="calc-item-value">NT$ ${oh.toLocaleString()}</div></div>`;
+  } else {
+    html += `<div class="calc-item"><div class="calc-item-label">Overhead</div><div class="calc-item-value" style="font-size:14px;color:var(--warn)">未定義，須確認</div></div>`;
+  }
+
+  if (site.startupFee > 0) {
+    html += `<div class="calc-item"><div class="calc-item-label">啟動費 Startup</div><div class="calc-item-value">NT$ ${site.startupFee.toLocaleString()}</div></div>`;
+  }
+
+  if (total !== null) {
+    html += `<div class="calc-item" style="border-color:var(--accent3);background:rgba(16,185,129,0.08)">
+      <div class="calc-item-label">預估支出合計</div>
+      <div class="calc-item-value" style="color:var(--accent3)">NT$ ${total.toLocaleString()}</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  if (site.risks.length) {
+    html += `<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--warn);">
+      ⚠ 注意事項：${site.risks.join(' | ')}
+    </div>`;
+  }
+
+  resultDiv.className = 'calc-result show';
+  resultDiv.innerHTML = html;
+}
+
+function buildKPI() {
+  const totalMax = siteData.reduce((s,d) => s + d.enrollMax, 0);
+  const avgIRB = '6 週';
+  const avgCTA = '16–20 週';
+  const items = [
+    { label:'參與機構', value: siteData.length, unit:'家' },
+    { label:'最大收案目標', value: totalMax, unit:'人' },
+    { label:'平均 IRB 時程', value: avgIRB, unit:'' },
+    { label:'平均 CTA 時程', value: avgCTA, unit:'' },
+    { label:'有 SMO 要求', value: siteData.filter(s=>s.risks.some(r=>r.includes('SMO'))).length, unit:'家' },
+    { label:'有啟動費機構', value: siteData.filter(s=>s.startupFee>0).length, unit:'家' },
+  ];
+  const grid = document.getElementById('kpiGrid');
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    card.innerHTML = `<div class="kpi-label">${item.label}</div>
+      <div class="kpi-value">${item.value}</div>
+      <div class="kpi-unit">${item.unit}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function buildRanking() {
+  const sorted = [...siteData].sort((a,b) => b.enrollMax - a.enrollMax);
+  const maxVal = sorted[0].enrollMax;
+  const list = document.getElementById('rankList');
+  sorted.forEach((s, i) => {
+    const pct = Math.round((s.enrollMax / maxVal) * 100);
+    const div = document.createElement('div');
+    div.className = 'rank-item';
+    div.innerHTML = `
+      <span class="rank-num">${i+1}</span>
+      <span class="rank-name">${s.name}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
+      <span class="rank-val">${s.enrollNote.split(' ')[0]} 人</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function buildDisclosure() {
+  const grid = document.getElementById('fullDisclosure');
+  siteData.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'site-card';
+    const rows = [
+      { k:'PI / SC', v:`${s.pi} ${s.piCite} / ${s.sc} ${s.scCite}` },
+      { k:'預估收案', v:`${s.enrollNote} ${s.enrollCite}` },
+      { k:'回溯 / 前瞻', v:`${s.retroPatients} 人 ${s.retroCite} / ${s.proPatients} ${s.proCite}` },
+      { k:'IRB 時程費', v:`${s.irbTime} | ${s.irbFee} ${s.irbFeeCite}` },
+      { k:'CTA 時程費', v:`${s.ctaTime} | ${s.ctaFee} ${s.ctaFeeCite}` },
+      { k:'Overhead', v:`${s.overhead} ${s.ohCite}` },
+      { k:'啟動費', v:s.startupFee>0?`NTD ${s.startupFee.toLocaleString()}`:'無' },
+    ];
+    card.innerHTML = `
+      <div class="site-card-header">
+        <div class="site-card-name">${s.name}</div>
+        <div class="site-card-id">${s.id}</div>
+      </div>
+      <div class="site-card-rows">
+        ${rows.map(r=>`<div class="site-row"><div class="site-row-key">${r.k}</div><div class="site-row-val">${r.v}</div></div>`).join('')}
+      </div>
+      ${s.risks.length ? `<div class="note-text">${s.risks.join('<br>')}</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function buildRisks() {
+  const container = document.getElementById('riskList');
+  siteData.forEach(s => {
+    if (!s.risks.length) return;
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px;';
+    div.innerHTML = `
+      <div style="font-family:var(--zh);font-size:14px;font-weight:700;color:#fff;margin-bottom:10px;">${s.name}</div>
+      <div class="risk-section">
+        ${s.risks.map(r=>`<div class="risk-pill">${r}</div>`).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+window.onload = () => {
+  buildKPI();
+  populateSelects();
+  updateCompare();
+  buildRanking();
+  buildDisclosure();
+  buildRisks();
+};
+</script>
+</body>
+</html>
